@@ -11,12 +11,16 @@ as a blank template; the actual mod still has to be written.
 - `DanMod/DanMod.cs`: the plugin entry point (`BaseUnityPlugin`). `Awake` calls
   `Harmony.PatchAll()`, so any `[HarmonyPatch]` class in the assembly is applied.
 - `Thunderstore/`: package metadata. A release zip needs `manifest.json`, `icon.png`
-  (256x256), `README.md` and the built DLL.
+  (256x256), `README.md` and the built DLL; the build's `Package` target makes
+  `Thunderstore/DanMod-<Version>.zip` (git-ignored).
 
 ## Build and test
 
 - `dotnet build DanMod/DanMod.csproj -c Release` builds the DLL and deploys it into the
-  Thunderstore Mod Manager `Default` profile's `BepInEx/plugins/DanMod`.
+  Thunderstore Mod Manager `Default` profile's `BepInEx/plugins/dantuthilljones-DanMod`, the
+  folder the manager uses after the package zip is imported with Author `dantuthilljones`
+  (Settings → Import local mod). The manager disables a mod by renaming its files to `*.old`;
+  the deploy then updates `DanMod.dll.old` so the mod stays disabled.
 - To test, launch the game through Thunderstore Mod Manager (modded), then read
   `%APPDATA%\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default\BepInEx\LogOutput.log`.
 - Game code can be read by decompiling `valheim_Data/Managed/assembly_valheim.dll`

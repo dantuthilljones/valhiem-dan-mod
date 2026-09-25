@@ -22,8 +22,20 @@ folder or from the Thunderstore Mod Manager `Default` profile.
 dotnet build DanMod/DanMod.csproj -c Release
 ```
 
-The build copies `DanMod.dll` into
-`%APPDATA%\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default\BepInEx\plugins\DanMod`.
+The build does two things:
+
+- Copies `DanMod.dll` into
+  `%APPDATA%\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default\BepInEx\plugins\dantuthilljones-DanMod`.
+  If the mod is disabled in the mod manager, it updates the disabled copy (`DanMod.dll.old`) instead.
+- Packages `Thunderstore\DanMod-<version>.zip` (manifest, icon, README and DLL).
+
+To make the mod show up in Thunderstore Mod Manager so it can be toggled on and off, import the package once:
+
+1. Build once so the zip exists.
+2. In the mod manager, go to Settings → Import local mod and pick the zip.
+3. Set **Author** to `dantuthilljones` so it installs into the same folder the build deploys to.
+
+After that, builds just update the installed copy.
 
 Useful overrides:
 

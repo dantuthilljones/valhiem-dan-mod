@@ -9,6 +9,7 @@
   Build:   dotnet build DanMod/DanMod.csproj -c Release
   Deploy:  automatic, into the Thunderstore Mod Manager profile (see Deploy target).
            Override with -p:PluginDeployPath=... or skip with -p:SkipDeploy=true
+  Package: automatic, Thunderstore/DanMod-<Version>.zip (see Package target).
 -->
 <Project Sdk="Microsoft.NET.Sdk">
 
@@ -91,10 +92,13 @@
     </ItemGroup>
 
     <!-- Thunderstore Mod Manager keeps BepInEx and the plugins in a profile folder,
-         not in the game folder. Override either of these on the command line. -->
+         not in the game folder. Override either of these on the command line.
+         The manager installs a mod into plugins\<Author>-<Name>, so deploy there; that is the
+         folder a local import of the package zip creates when its Author is set to ModAuthor. -->
     <PropertyGroup>
+        <ModAuthor>dantuthilljones</ModAuthor>
         <ProfilePath Condition="'$(ProfilePath)' == '' AND '$(OS)' == 'Windows_NT'">$(APPDATA)\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default</ProfilePath>
-        <PluginDeployPath Condition="'$(PluginDeployPath)' == ''">$(ProfilePath)\BepInEx\plugins\$(AssemblyName)</PluginDeployPath>
+        <PluginDeployPath Condition="'$(PluginDeployPath)' == ''">$(ProfilePath)\BepInEx\plugins\$(ModAuthor)-$(AssemblyName)</PluginDeployPath>
     </PropertyGroup>
 
     <!-- BepInEx / Harmony, from the game folder or the Thunderstore profile. -->
@@ -109,9 +113,29 @@
     </ItemGroup>
 
     <Target Name="Deploy" AfterTargets="Build" Condition="'$(SkipDeploy)' != 'true'">
+        <!-- The mod manager disables a mod by renaming its files to *.old. Keep a disabled mod
+             disabled, but up to date for when it is enabled again. -->
+        <PropertyGroup>
+            <_DeployFileName>$(TargetFileName)</_DeployFileName>
+            <_DeployFileName Condition="Exists('$(PluginDeployPath)\$(TargetFileName).old')">$(TargetFileName).old</_DeployFileName>
+        </PropertyGroup>
         <MakeDir Directories="$(PluginDeployPath)"/>
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDeployPath)"/>
-        <Message Importance="high" Text="Deployed $(TargetFileName) -> $(PluginDeployPath)"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(PluginDeployPath)\$(_DeployFileName)"/>
+        <Message Importance="high" Text="Deployed $(TargetFileName) -> $(PluginDeployPath)\$(_DeployFileName)"/>
+    </Target>
+
+    <!-- Thunderstore package: manifest.json, icon.png, README.md and the DLL at the zip root.
+         Used for "Import local mod" in the mod manager, and for uploading a release. -->
+    <Target Name="Package" AfterTargets="Build">
+        <PropertyGroup>
+            <_ThunderstoreDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\Thunderstore'))</_ThunderstoreDir>
+            <_PackageStage>$(IntermediateOutputPath)thunderstore</_PackageStage>
+        </PropertyGroup>
+        <RemoveDir Directories="$(_PackageStage)"/>
+        <Copy SourceFiles="$(_ThunderstoreDir)\manifest.json;$(_ThunderstoreDir)\icon.png;$(MSBuildThisFileDirectory)..\README.md;$(TargetPath)"
+              DestinationFolder="$(_PackageStage)"/>
+        <ZipDirectory SourceDirectory="$(_PackageStage)" DestinationFile="$(_ThunderstoreDir)\$(AssemblyName)-$(Version).zip" Overwrite="true"/>
+        <Message Importance="high" Text="Packaged $(_ThunderstoreDir)\$(AssemblyName)-$(Version).zip"/>
     </Target>
 
 </Project>
