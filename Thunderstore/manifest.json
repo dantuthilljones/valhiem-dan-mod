@@ -2,7 +2,7 @@
   "name": "DanMod",
   "version_number": "0.1.0",
   "website_url": "https://github.com/dantuthilljones/valhiem-dan-mod",
-  "description": "TODO: describe the mod.",
+  "description": "No cheated items or profile, achievements stay enabled, no food decay, and re-eating food adds to its timer.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2202"
   ]
