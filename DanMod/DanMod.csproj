@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Valheim BepInEx plugin, built with the plain `dotnet` SDK.
+
+    * Microsoft.NETFramework.ReferenceAssemblies - net48 targeting pack via NuGet.
+    * BepInEx.AssemblyPublicizer.MSBuild        - publicizes Valheim's assemblies at
+      build time, so private game members can be accessed directly.
+
+  Build:   dotnet build DanMod/DanMod.csproj -c Release
+  Deploy:  automatic, into the Thunderstore Mod Manager profile (see Deploy target).
+           Override with -p:PluginDeployPath=... or skip with -p:SkipDeploy=true
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <AssemblyName>DanMod</AssemblyName>
+        <RootNamespace>DanMod</RootNamespace>
+        <Version>0.1.0</Version>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+        <!-- Valheim 1.0 runs Unity 6 on Mono with a netstandard 2.1 surface, which is
+             not what the net48 targeting pack describes. Compile against the game's own
+             corlib so the compile-time surface matches what actually executes. The net48
+             targeting pack is still referenced below, purely to satisfy MSB3644. -->
+        <NoStdLib>true</NoStdLib>
+        <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    </PropertyGroup>
+
+    <!-- Locate the Valheim install. -->
+    <Choose>
+        <When Condition="($(OS) == 'Unix' OR $(OS) == 'OSX') AND $(GamePath) == ''">
+            <PropertyGroup>
+                <GamePath Condition="!Exists('$(GamePath)')">$(HOME)/.steam/steam/steamapps/common/Valheim</GamePath>
+                <GamePath Condition="!Exists('$(GamePath)')">$(HOME)/Library/Application Support/Steam/steamapps/common/Valheim/Contents/MacOS</GamePath>
+            </PropertyGroup>
+        </When>
+        <When Condition="($(OS) == 'Windows_NT') AND $(GamePath) == ''">
+            <PropertyGroup>
+                <GamePath Condition="!Exists('$(GamePath)')">$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 892970', 'InstallLocation', null, RegistryView.Registry64, RegistryView.Registry32))</GamePath>
+                <_SteamLibraryPath>$([MSBuild]::GetRegistryValueFromView('HKEY_CURRENT_USER\SOFTWARE\Valve\Steam', 'SteamPath', null, RegistryView.Registry32))</_SteamLibraryPath>
+                <GamePath Condition="!Exists('$(GamePath)') AND '$(_SteamLibraryPath)' != ''">$(_SteamLibraryPath)\steamapps\common\Valheim</GamePath>
+                <GamePath Condition="!Exists('$(GamePath)')">C:\Program Files\Steam\steamapps\common\Valheim</GamePath>
+                <GamePath Condition="!Exists('$(GamePath)')">C:\Program Files (x86)\Steam\steamapps\common\Valheim</GamePath>
+            </PropertyGroup>
+        </When>
+    </Choose>
+
+    <Target Name="CheckGamePath" BeforeTargets="BeforeBuild">
+        <Error Condition="!Exists('$(GamePath)\valheim_Data\Managed\assembly_valheim.dll')"
+               Text="Could not locate Valheim. GamePath resolved to '$(GamePath)'. Pass it explicitly: dotnet build -p:GamePath=&quot;D:\path\to\Valheim&quot;"/>
+    </Target>
+
+    <PropertyGroup>
+        <_Managed>$(GamePath)\valheim_Data\Managed</_Managed>
+        <!-- Search the game's Managed folder before the net48 targeting pack. -->
+        <AssemblySearchPaths>$(_Managed);$(AssemblySearchPaths)</AssemblySearchPaths>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all"/>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <!-- The base class library, taken from the game rather than the targeting pack. -->
+    <ItemGroup>
+        <Reference Include="mscorlib" Private="false"><HintPath>$(_Managed)\mscorlib.dll</HintPath></Reference>
+        <Reference Include="netstandard" Private="false"><HintPath>$(_Managed)\netstandard.dll</HintPath></Reference>
+        <Reference Include="System" Private="false"><HintPath>$(_Managed)\System.dll</HintPath></Reference>
+        <Reference Include="System.Core" Private="false"><HintPath>$(_Managed)\System.Core.dll</HintPath></Reference>
+    </ItemGroup>
+
+    <!-- Valheim's own assemblies, publicized on the fly. -->
+    <ItemGroup>
+        <Reference Include="assembly_valheim" Publicize="true" Private="false"><HintPath>$(_Managed)\assembly_valheim.dll</HintPath></Reference>
+        <Reference Include="assembly_guiutils" Publicize="true" Private="false"><HintPath>$(_Managed)\assembly_guiutils.dll</HintPath></Reference>
+        <Reference Include="assembly_utils" Publicize="true" Private="false"><HintPath>$(_Managed)\assembly_utils.dll</HintPath></Reference>
+    </ItemGroup>
+
+    <!-- Unity. Add more modules from valheim_Data\Managed as needed. -->
+    <ItemGroup>
+        <Reference Include="UnityEngine" Private="false"><HintPath>$(_Managed)\UnityEngine.dll</HintPath></Reference>
+        <Reference Include="UnityEngine.CoreModule" Private="false"><HintPath>$(_Managed)\UnityEngine.CoreModule.dll</HintPath></Reference>
+        <Reference Include="UnityEngine.InputLegacyModule" Private="false"><HintPath>$(_Managed)\UnityEngine.InputLegacyModule.dll</HintPath></Reference>
+        <Reference Include="UnityEngine.PhysicsModule" Private="false"><HintPath>$(_Managed)\UnityEngine.PhysicsModule.dll</HintPath></Reference>
+        <Reference Include="UnityEngine.UI" Private="false"><HintPath>$(_Managed)\UnityEngine.UI.dll</HintPath></Reference>
+        <Reference Include="Unity.TextMeshPro" Private="false"><HintPath>$(_Managed)\Unity.TextMeshPro.dll</HintPath></Reference>
+    </ItemGroup>
+
+    <!-- Thunderstore Mod Manager keeps BepInEx and the plugins in a profile folder,
+         not in the game folder. Override either of these on the command line. -->
+    <PropertyGroup>
+        <ProfilePath Condition="'$(ProfilePath)' == '' AND '$(OS)' == 'Windows_NT'">$(APPDATA)\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default</ProfilePath>
+        <PluginDeployPath Condition="'$(PluginDeployPath)' == ''">$(ProfilePath)\BepInEx\plugins\$(AssemblyName)</PluginDeployPath>
+    </PropertyGroup>
+
+    <!-- BepInEx / Harmony, from the game folder or the Thunderstore profile. -->
+    <PropertyGroup>
+        <_BepInExCore Condition="'$(_BepInExCore)' == '' AND Exists('$(GamePath)\BepInEx\core\BepInEx.dll')">$(GamePath)\BepInEx\core</_BepInExCore>
+        <_BepInExCore Condition="'$(_BepInExCore)' == '' AND Exists('$(ProfilePath)\BepInEx\core\BepInEx.dll')">$(ProfilePath)\BepInEx\core</_BepInExCore>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="BepInEx" Private="false"><HintPath>$(_BepInExCore)\BepInEx.dll</HintPath></Reference>
+        <Reference Include="0Harmony" Private="false"><HintPath>$(_BepInExCore)\0Harmony.dll</HintPath></Reference>
+    </ItemGroup>
+
+    <Target Name="Deploy" AfterTargets="Build" Condition="'$(SkipDeploy)' != 'true'">
+        <MakeDir Directories="$(PluginDeployPath)"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDeployPath)"/>
+        <Message Importance="high" Text="Deployed $(TargetFileName) -> $(PluginDeployPath)"/>
+    </Target>
+
+</Project>
