@@ -24,9 +24,11 @@ internal static class NoCheatFlags
 	// Found by scanning the game's IL rather than listed by hand, so writers added in game updates are covered.
 	private static readonly List<MethodBase> Writers = FindWriters();
 
-	private static bool Prepare()
+	// Harmony calls this once for the class (original == null), then again for each target method.
+	private static bool Prepare(MethodBase? original)
 	{
-		DanMod.Log.LogInfo($"Clearing cheat flags in {Writers.Count} game methods");
+		if (original == null)
+			DanMod.Log.LogInfo($"Clearing cheat flags in {Writers.Count} game methods");
 		return Writers.Count > 0;
 	}
 
