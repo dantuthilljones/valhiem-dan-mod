@@ -16,11 +16,13 @@ as a blank template; the actual mod still has to be written.
 
 ## Build and test
 
-- `dotnet build DanMod/DanMod.csproj -c Release` builds the DLL and deploys it into the
-  Thunderstore Mod Manager `Default` profile's `BepInEx/plugins/dantuthilljones-DanMod`, the
-  folder the manager uses after the package zip is imported with Author `dantuthilljones`
-  (Settings → Import local mod). The manager disables a mod by renaming its files to `*.old`;
-  the deploy then updates `DanMod.dll.old` so the mod stays disabled.
+- `dotnet build DanMod/DanMod.csproj -c Release` builds the DLL and updates the copy the
+  Thunderstore Mod Manager installed in the `Default` profile: the `BepInEx/plugins/*-DanMod`
+  folder that holds a `manifest.json`, created by importing the package zip (Settings → Import
+  local mod, any Author). The manager disables a mod by renaming its files to `*.old`; the
+  deploy then updates `DanMod.dll.old` so the mod stays disabled. The build never creates a
+  plugin folder itself (a copy the manager doesn't know about loads twice and can't be toggled),
+  and it warns when DanMod is not installed or is installed more than once.
 - To test, launch the game through Thunderstore Mod Manager (modded), then read
   `%APPDATA%\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default\BepInEx\LogOutput.log`.
 - Game code can be read by decompiling `valheim_Data/Managed/assembly_valheim.dll`

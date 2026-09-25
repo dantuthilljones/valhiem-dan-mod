@@ -92,13 +92,9 @@
     </ItemGroup>
 
     <!-- Thunderstore Mod Manager keeps BepInEx and the plugins in a profile folder,
-         not in the game folder. Override either of these on the command line.
-         The manager installs a mod into plugins\<Author>-<Name>, so deploy there; that is the
-         folder a local import of the package zip creates when its Author is set to ModAuthor. -->
+         not in the game folder. Override on the command line. -->
     <PropertyGroup>
-        <ModAuthor>dantuthilljones</ModAuthor>
         <ProfilePath Condition="'$(ProfilePath)' == '' AND '$(OS)' == 'Windows_NT'">$(APPDATA)\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default</ProfilePath>
-        <PluginDeployPath Condition="'$(PluginDeployPath)' == ''">$(ProfilePath)\BepInEx\plugins\$(ModAuthor)-$(AssemblyName)</PluginDeployPath>
     </PropertyGroup>
 
     <!-- BepInEx / Harmony, from the game folder or the Thunderstore profile. -->
@@ -112,16 +108,32 @@
         <Reference Include="0Harmony" Private="false"><HintPath>$(_BepInExCore)\0Harmony.dll</HintPath></Reference>
     </ItemGroup>
 
+    <!-- Deploy only updates the copy the mod manager installed from the package zip, in
+         plugins\<Author>-DanMod (the Author is whatever was entered on import), so the manager can
+         toggle it and there is never a second copy. Pass -p:PluginDeployPath=... to deploy to a
+         specific folder instead. -->
     <Target Name="Deploy" AfterTargets="Build" Condition="'$(SkipDeploy)' != 'true'">
-        <!-- The mod manager disables a mod by renaming its files to *.old. Keep a disabled mod
-             disabled, but up to date for when it is enabled again. -->
-        <PropertyGroup>
-            <_DeployFileName>$(TargetFileName)</_DeployFileName>
-            <_DeployFileName Condition="Exists('$(PluginDeployPath)\$(TargetFileName).old')">$(TargetFileName).old</_DeployFileName>
-        </PropertyGroup>
-        <MakeDir Directories="$(PluginDeployPath)"/>
-        <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(PluginDeployPath)\$(_DeployFileName)"/>
-        <Message Importance="high" Text="Deployed $(TargetFileName) -> $(PluginDeployPath)\$(_DeployFileName)"/>
+        <ItemGroup Condition="'$(PluginDeployPath)' == ''">
+            <!-- manifest.json.old: the manager disables a mod by renaming its files to *.old. -->
+            <_InstalledManifest Include="$(ProfilePath)\BepInEx\plugins\*-$(AssemblyName)\manifest.json;$(ProfilePath)\BepInEx\plugins\*-$(AssemblyName)\manifest.json.old"/>
+            <_DeployDir Include="@(_InstalledManifest->'%(RootDir)%(Directory)'->Distinct())"/>
+        </ItemGroup>
+        <ItemGroup Condition="'$(PluginDeployPath)' != ''">
+            <_DeployDir Include="$([MSBuild]::EnsureTrailingSlash('$(PluginDeployPath)'))"/>
+        </ItemGroup>
+        <!-- Keep a disabled mod disabled, but up to date for when it is enabled again. -->
+        <ItemGroup>
+            <_DeployFile Include="%(_DeployDir.Identity)$(TargetFileName)" Condition="'%(_DeployDir.Identity)' != '' AND !Exists('%(_DeployDir.Identity)$(TargetFileName).old')"/>
+            <_DeployFile Include="%(_DeployDir.Identity)$(TargetFileName).old" Condition="'%(_DeployDir.Identity)' != '' AND Exists('%(_DeployDir.Identity)$(TargetFileName).old')"/>
+        </ItemGroup>
+
+        <Warning Condition="'@(_DeployDir)' == ''"
+                 Text="$(AssemblyName) is not installed in the mod manager profile, so it was not deployed. Import Thunderstore\$(AssemblyName)-$(Version).zip once (Settings, Import local mod)."/>
+        <Warning Condition="'@(_DeployDir->Count())' &gt; '1'"
+                 Text="$(AssemblyName) is installed more than once, so the game loads duplicate copies: @(_DeployDir, ', '). Uninstall the extra copies in the mod manager."/>
+        <MakeDir Directories="@(_DeployDir)"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFiles="%(_DeployFile.Identity)" Condition="'%(_DeployFile.Identity)' != ''"/>
+        <Message Importance="high" Text="Deployed $(TargetFileName) -> %(_DeployFile.Identity)" Condition="'%(_DeployFile.Identity)' != ''"/>
     </Target>
 
     <!-- Thunderstore package: manifest.json, icon.png, README.md and the DLL at the zip root.

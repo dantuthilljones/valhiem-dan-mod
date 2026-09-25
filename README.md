@@ -24,21 +24,25 @@ dotnet build DanMod/DanMod.csproj -c Release
 
 The build does two things:
 
-- Copies `DanMod.dll` into
-  `%APPDATA%\Thunderstore Mod Manager\DataFolder\Valheim\profiles\Default\BepInEx\plugins\dantuthilljones-DanMod`.
-  If the mod is disabled in the mod manager, it updates the disabled copy (`DanMod.dll.old`) instead.
 - Packages `Thunderstore\DanMod-<version>.zip` (manifest, icon, README and DLL).
+- Updates the copy of `DanMod.dll` that Thunderstore Mod Manager installed in the `Default` profile
+  (`BepInEx\plugins\<Author>-DanMod`). If the mod is disabled in the mod manager, it updates
+  the disabled copy (`DanMod.dll.old`) instead. It never creates a copy of its own, because a
+  copy the mod manager doesn't know about would load alongside the managed one and couldn't be
+  toggled off.
 
-To make the mod show up in Thunderstore Mod Manager so it can be toggled on and off, import the package once:
+The first time, install the mod through the mod manager so it shows up there and can be toggled on
+and off:
 
-1. Build once so the zip exists.
-2. In the mod manager, go to Settings → Import local mod and pick the zip.
-3. Set **Author** to `dantuthilljones` so it installs into the same folder the build deploys to.
+1. Build once so the zip exists. The build warns that DanMod isn't installed yet.
+2. In the mod manager, go to Settings → Import local mod and pick the zip. Any Author works.
 
-After that, builds just update the installed copy.
+After that, builds just update the installed copy. If the mod gets imported twice (e.g. under two
+different Authors), the build warns about it; uninstall the extra copy in the mod manager.
 
 Useful overrides:
 
 - `-p:GamePath="D:\path\to\Valheim"` if the game install is not found automatically
-- `-p:ProfilePath="..."` to deploy into a different mod manager profile
+- `-p:ProfilePath="..."` to use a different mod manager profile
+- `-p:PluginDeployPath="..."` to deploy into a specific folder instead
 - `-p:SkipDeploy=true` to build without deploying
