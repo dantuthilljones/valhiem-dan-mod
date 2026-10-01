@@ -12,6 +12,9 @@ A Valheim mod (BepInEx plugin) with a few quality-of-life changes:
 - **No food decay**: food gives its full health, stamina and eitr until its timer runs out.
 - **Re-eating adds time**: eating a food you already have adds its full duration to the time
   left instead of resetting the timer (e.g. 5 min of bread left + a 25 min bread = 30 min).
+- **Forge of Potential lowers the level instead of destroying gear**: a failed upgrade drops the
+  item one level. Only a level-1 item, which has no lower level, is destroyed. The success chance
+  is unchanged.
 
 ## Building
 
