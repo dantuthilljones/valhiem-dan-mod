@@ -33,3 +33,19 @@ internal static class NoUpgradeBreak
 		_ => 1f,
 	};
 }
+
+// The game's translations have no text for the message the level-lowering branch shows ($msg_upgrader_failed),
+// so it came out as "[msg_upgrader_failed]". Every language load (startup, or a language change, which clears
+// the translations first) goes through SetupLanguage; add English text afterwards unless the game has its own.
+[HarmonyPatch(typeof(Localization), nameof(Localization.SetupLanguage))]
+internal static class UpgradeFailedMessage
+{
+	private const string Key = "msg_upgrader_failed";
+
+	// $1 is the item, $2 its new level; worded like the game's "$1 refinement failed and broke on level $2".
+	private static void Postfix(Localization __instance)
+	{
+		if (!__instance.m_translations.ContainsKey(Key))
+			__instance.AddWord(Key, "$1 refinement failed and dropped to level $2");
+	}
+}
