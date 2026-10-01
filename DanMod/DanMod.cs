@@ -8,7 +8,7 @@ namespace DanMod;
 public class DanMod : BaseUnityPlugin
 {
 	private const string ModName = "DanMod";
-	private const string ModVersion = "0.1.0";
+	private const string ModVersion = ModInfo.Version;
 	private const string ModGUID = "dantuthilljones.DanMod";
 
 	internal static ManualLogSource Log = null!;

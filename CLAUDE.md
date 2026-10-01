@@ -19,7 +19,7 @@ as a blank template; the actual mod still has to be written.
 - `dotnet build DanMod/DanMod.csproj -c Release` builds the DLL and updates the copy the
   Thunderstore Mod Manager installed in the `Default` profile: the `BepInEx/plugins/*-DanMod`
   folder that holds a `manifest.json`, created by importing the package zip (Settings → Import
-  local mod, any Author). The manager disables a mod by renaming its files to `*.old`; the
+  local mod, Author `Dan`). The manager disables a mod by renaming its files to `*.old`; the
   deploy then updates `DanMod.dll.old` so the mod stays disabled. The build never creates a
   plugin folder itself (a copy the manager doesn't know about loads twice and can't be toggled),
   and it warns when DanMod is not installed or is installed more than once.
@@ -31,8 +31,11 @@ as a blank template; the actual mod still has to be written.
 ## Conventions
 
 - Tabs for indentation in C#.
-- Keep `ModVersion` in `DanMod.cs`, `<Version>` in the csproj and `version_number` in
-  `Thunderstore/manifest.json` in sync.
+- The version lives only in `<Version>` in the csproj. The build generates `ModInfo.Version`
+  (used by `ModVersion` in `DanMod.cs`) and writes `version_number` into
+  `Thunderstore/manifest.json`; commit that file along with the bump. Bump it for every release
+  (patch for fixes, minor for new features). The mod manager keeps showing the imported version
+  until the new zip is imported (Author `Dan`), and the build warns until then.
 - If the mod needs another Unity/game assembly, add a `<Reference>` with `Private="false"`
   pointing into `$(_Managed)`.
 - When renaming the mod, update the folder and csproj name, `AssemblyName`, `RootNamespace`,

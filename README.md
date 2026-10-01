@@ -38,10 +38,20 @@ The first time, install the mod through the mod manager so it shows up there and
 and off:
 
 1. Build once so the zip exists. The build warns that DanMod isn't installed yet.
-2. In the mod manager, go to Settings → Import local mod and pick the zip. Any Author works.
+2. In the mod manager, go to Settings → Import local mod, pick the zip and enter `Dan` as the Author.
 
 After that, builds just update the installed copy. If the mod gets imported twice (e.g. under two
 different Authors), the build warns about it; uninstall the extra copy in the mod manager.
+
+### Releasing a new version
+
+The version is set only by `<Version>` in `DanMod/DanMod.csproj`. The build puts it in the plugin
+and in `Thunderstore/manifest.json`, and names the zip after it. To release:
+
+1. Bump `<Version>`: the patch number for fixes, the minor number for new features.
+2. Build, then commit the csproj and the updated `Thunderstore/manifest.json`.
+3. Import the new zip in the mod manager, again with Author `Dan`. Until then the manager keeps
+   showing the old version (builds only replace the DLL), and the build warns about it.
 
 Useful overrides:
 
