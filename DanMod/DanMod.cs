@@ -16,7 +16,10 @@ public class DanMod : BaseUnityPlugin
 	public void Awake()
 	{
 		Log = Logger;
+		SapExtractorPins.Init(Config);
 		new Harmony(ModGUID).PatchAll();
 		Logger.LogInfo($"{ModName} {ModVersion} loaded");
 	}
+
+	public void Update() => SapExtractorPins.Update();
 }

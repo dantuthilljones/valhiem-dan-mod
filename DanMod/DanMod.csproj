@@ -20,7 +20,7 @@
         <!-- The mod's version, and the only place to change it: the build passes it on to the
              plugin (ModInfo.Version) and to Thunderstore\manifest.json (see GenerateModInfo and
              Package). -->
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
@@ -82,6 +82,8 @@
         <Reference Include="assembly_valheim" Publicize="true" Private="false"><HintPath>$(_Managed)\assembly_valheim.dll</HintPath></Reference>
         <Reference Include="assembly_guiutils" Publicize="true" Private="false"><HintPath>$(_Managed)\assembly_guiutils.dll</HintPath></Reference>
         <Reference Include="assembly_utils" Publicize="true" Private="false"><HintPath>$(_Managed)\assembly_utils.dll</HintPath></Reference>
+        <!-- Platform types in game signatures, e.g. Minimap.AddPin's PlatformUserID. -->
+        <Reference Include="Splatform" Private="false"><HintPath>$(_Managed)\Splatform.dll</HintPath></Reference>
     </ItemGroup>
 
     <!-- Unity. Add more modules from valheim_Data\Managed as needed. -->

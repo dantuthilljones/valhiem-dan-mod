@@ -15,6 +15,13 @@ A Valheim mod (BepInEx plugin) with a few quality-of-life changes:
 - **Forge of Potential lowers the level instead of destroying gear**: a failed upgrade drops the
   item one level. Only a level-1 item, which has no lower level, is destroyed. The success chance
   is unchanged.
+- **Sap extractors on the map**: press `F7` to pin every sap extractor (the piece that drains sap
+  from an ancient root in the Mistlands) on the map with its build icon, and again to remove the
+  pins. The pins update as extractors are built or removed, are never saved to your map or shared
+  at a cartography table, and stay on across sessions until you switch them off. The key and the
+  on/off state are in `BepInEx\config\dantuthilljones.DanMod.cfg` (section `Sap extractor map`).
+  In single player or when hosting, every extractor in the world is found; on someone else's
+  server, only the ones you have been near since joining.
 
 ## Building
 
