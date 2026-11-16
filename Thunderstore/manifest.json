@@ -1,8 +1,8 @@
 {
   "name": "DanMod",
-  "version_number": "0.3.0",
+  "version_number": "0.4.0",
   "website_url": "https://github.com/dantuthilljones/valhiem-dan-mod",
-  "description": "No cheated items or profile, achievements stay enabled, no food decay, re-eating food adds to its timer, failed Forge of Potential upgrades lower the level instead of destroying gear, and a hotkey pins your sap extractors on the map.",
+  "description": "No cheated items or profile, achievements stay enabled, no food decay, re-eating food adds to its timer, failed Forge of Potential upgrades lower the level instead of destroying gear, and a hotkey pins portals, ships, carts and more on the map.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2202"
   ]

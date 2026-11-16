@@ -20,7 +20,7 @@
         <!-- The mod's version, and the only place to change it: the build passes it on to the
              plugin (ModInfo.Version) and to Thunderstore\manifest.json (see GenerateModInfo and
              Package). -->
-        <Version>0.3.0</Version>
+        <Version>0.4.0</Version>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
